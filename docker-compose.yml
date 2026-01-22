@@ -1,0 +1,60 @@
+services:
+  n8n:
+    image: 'n8nio/n8n:latest'
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.n8n.rule=Host(`n8n-cpu.priviq.ai`)
+      - traefik.http.routers.n8n.entrypoints=https
+      - traefik.http.routers.n8n.tls=true
+      - traefik.http.services.n8n.loadbalancer.server.port=5678
+      - traefik.http.routers.n8n.service=n8n
+    environment:
+      - 'SERVICE_FQDN_N8N=${SERVICE_FQDN_N8N}'
+      - 'N8N_HOST=${SERVICE_FQDN_N8N}'
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - 'N8N_EDITOR_BASE_URL=https://${SERVICE_FQDN_N8N}'
+      - 'WEBHOOK_URL=https://${SERVICE_FQDN_N8N}'
+      - N8N_RESTRICT_FILE_ACCESS_TO=/files
+      - TZ=Europe/Berlin
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_RUNNERS_MODE=external
+      - N8N_RUNNERS_AUTH_TOKEN=geheim12345
+      - N8N_RUNNERS_BROKER_LISTEN_ADDRESS=0.0.0.0
+      - N8N_RUNNERS_BROKER_PORT=5679
+    volumes:
+      - 'n8n-data:/home/node/.n8n'
+      - 'n8n-data:/files'
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'wget -qO- http://127.0.0.1:5678/'
+      interval: 5s
+      timeout: 20s
+      retries: 10
+    networks:
+      - priviq-internal
+    ports:
+      - '5679:5679'
+
+  runner:
+    image: u44sgo4cg8wg4gskw4sg8o40:latest
+    environment:
+      - N8N_RUNNERS_AUTH_TOKEN=geheim12345
+      - N8N_RUNNERS_TASK_BROKER_URI=http://n8n:5679
+      - N8N_RUNNERS_LAUNCHER_LOG_LEVEL=debug
+    volumes:
+      - 'n8n-data:/home/node/.n8n'
+    restart: always
+    networks:
+      - priviq-internal
+    depends_on:
+      - n8n
+
+volumes:
+  n8n-data:
+
+networks:
+  priviq-internal:
+    name: priviq-internal
+    external: true
