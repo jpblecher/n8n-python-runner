@@ -1,5 +1,27 @@
-FROM n8nio/runners:latest
+FROM n8nio/runners:2.0.0
+
 USER root
-RUN cd /opt/runners/task-runner-python && uv pip install numpy pandas
-COPY n8n-task-runners.json /etc/n8n-task-runners.json
+
+RUN apk add --no-cache \
+    build-base \
+    python3-dev \
+    gcc \
+    musl-dev
+
+RUN cd /opt/runners/task-runner-python && \
+    python3 -m venv --upgrade .venv && \
+    .venv/bin/python -m pip install --upgrade pip && \
+    .venv/bin/python -m pip install --no-cache-dir \
+    numpy \
+    pandas \
+    yt-dlp
+
+RUN echo 'ewogICJ0YXNrLXJ1bm5lcnMiOiBbCiAgICB7CiAgICAgICJydW5uZXItdHlwZSI6ICJweXRob24iLAogICAgICAid29ya2RpciI6ICIvaG9tZS9ydW5uZXIiLAogICAgICAiY29tbWFuZCI6ICIvb3B0L3J1bm5lcnMvdGFzay1ydW5uZXItcHl0aG9uLy52ZW52L2Jpbi9weXRob24iLAogICAgICAiYXJncyI6IFsiLW0iLCAic3JjLm1haW4iXSwKICAgICAgImhlYWx0aC1jaGVjay1zZXJ2ZXItcG9ydCI6IDU2ODIsCiAgICAgICJhbGxvd2VkLWVudiI6IFsKICAgICAgICAiUEFUSCIsCiAgICAgICAgIlBZVEhPTlBBVEgiLAogICAgICAgICJOOE5fUlVOTkVSU19MQVVOQ0hFUl9MT0dfTEVWRUwiLAogICAgICAgICJOOE5fUlVOTkVSU19BVVRPX1NIVVRET1dOX1RJTUVPVVQiLAogICAgICAgICJOOE5fUlVOTkVSU19UQVNLX1RJTUVPVVQiLAogICAgICAgICJOOE5fUlVOTkVSU19NQVhfQ09OQ1VSUkVOQ1kiLAogICAgICAgICJOOE5fU0VOVFJZX0RTTiIsCiAgICAgICAgIk44Tl9WRVJTSU9OIiwKICAgICAgICAiRU5WSVJPTk1FTlQiLAogICAgICAgICJERVBMT1lNRU5UX05BTUUiLAogICAgICAgICJOOE5fUlVOTkVSU19TVERMSUJfQUxMT1ciLAogICAgICAgICJOOE5fUlVOTkVSU19FWFRFUk5BTF9BTExPVyIKICAgICAgXSwKICAgICAgImVudi1vdmVycmlkZXMiOiB7CiAgICAgICAgIlBZVEhPTlBBVEgiOiAiL29wdC9ydW5uZXJzL3Rhc2stcnVubmVyLXB5dGhvbiIsCiAgICAgICAgIk44Tl9SVU5ORVJTX1NURExJQl9BTExPVyI6ICIqIiwKICAgICAgICAiTjhOX1JVTk5FUlNfRVhURVJOQUxfQUxMT1ciOiAieXRfZGxwLG51bXB5LHBhbmRhcyIKICAgICAgfQogICAgfQogIF0KfQo=' | base64 -d > /etc/n8n-task-runners.json
+
+RUN chmod 644 /etc/n8n-task-runners.json
+
 USER runner
+
+WORKDIR /home/runner
+
+EXPOSE 5682
