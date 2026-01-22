@@ -2,10 +2,12 @@
   "task-runners": [
     {
       "runner-type": "javascript",
+      "health-check-server-port": "5681",
       "env-overrides": {}
     },
     {
       "runner-type": "python",
+      "health-check-server-port": "5682",
       "env-overrides": {
         "PYTHONPATH": "/opt/runners/task-runner-python",
         "N8N_RUNNERS_STDLIB_ALLOW": "*",
